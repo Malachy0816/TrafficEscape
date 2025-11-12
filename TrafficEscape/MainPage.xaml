@@ -5,7 +5,8 @@
              x:Class="TrafficEscape.MainPage">
 
     <GraphicsView x:Name="GameView"
-                  Drawable="{x:Static game:GameDrawable.Instance}"
                   VerticalOptions="FillAndExpand"
                   HorizontalOptions="FillAndExpand" />
+
+
 </ContentPage>
