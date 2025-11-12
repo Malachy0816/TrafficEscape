@@ -1,24 +1,26 @@
-﻿
-
-using TrafficEscape.Game;
+﻿using TrafficEscape.Game;
 
 namespace TrafficEscape
 {
     public partial class MainPage : ContentPage
     {
         private GameEngine _engine;
+        private GameDrawable _drawable;
 
         public MainPage()
         {
             InitializeComponent();
+
             _engine = new GameEngine(GameView);
-            _ = InitAsync();
+            _drawable = new GameDrawable(_engine);
+            GameView.Drawable = _drawable;
+
+            Loaded += MainPage_Loaded;
         }
 
-        private async Task InitAsync()
+        private async void MainPage_Loaded(object sender, EventArgs e)
         {
             await _engine.PreloadImagesAsync();
-            GameView.Drawable = new GameDrawable(_engine);
             _engine.start();
         }
     }

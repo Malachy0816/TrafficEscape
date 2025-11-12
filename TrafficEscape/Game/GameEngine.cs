@@ -23,7 +23,7 @@ namespace TrafficEscape.Game
 
         public async Task PreloadImagesAsync()
         {
-            using var stream = await FileSystem.OpenAppPackageFileAsync("road.png");
+            using var stream = await FileSystem.OpenAppPackageFileAsync("road.png"); // file not being found
             RoadImage = PlatformImage.FromStream(stream);
         }
 
@@ -34,7 +34,7 @@ namespace TrafficEscape.Game
             _stopwatch.Start();
 
             var timer = Application.Current.Dispatcher.CreateTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            timer.Interval = TimeSpan.FromMilliseconds(16);
             timer.Tick += (s, e) =>
             {
                 float dt = (float)_stopwatch.Elapsed.TotalSeconds;
