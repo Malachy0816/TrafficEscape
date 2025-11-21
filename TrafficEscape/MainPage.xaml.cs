@@ -11,8 +11,12 @@ namespace TrafficEscape
          
         */
 
-        Image myImage;
+        Image carImage;
         Image roadImage1;
+        Image roadImage2;
+        Image roadImage3;
+        int roadHeight = 800;
+
 
         AbsoluteLayout gameLayout;
 
@@ -32,9 +36,9 @@ namespace TrafficEscape
         public void setUpPlayerImage() {    
 
 
-            myImage = new Image
+             carImage = new Image
             {
-                Source = "player_blue_car.png",
+                Source = "player_red_car.png",
                 WidthRequest = 100,
                 HeightRequest = 200,
             };
@@ -43,12 +47,28 @@ namespace TrafficEscape
             {
                 Source = "road.png",
                 WidthRequest = 400,
-                HeightRequest = 800,
+                HeightRequest = roadHeight,
             };
 
-            AbsoluteLayout.SetLayoutBounds(roadImage1, new Rect(gameLayout.Width / 2 - roadImage1.Width / 2, 0, 400, 800));
-            AbsoluteLayout.SetLayoutBounds(myImage, new Rect(100,100 , 100, 200));
-            
+            roadImage2 = new Image
+            {
+                Source = "road.png",
+                WidthRequest = 400,
+                HeightRequest = roadHeight,
+            };
+
+            roadImage3 = new Image
+            {
+                Source = "road.png",
+                WidthRequest = 400,
+                HeightRequest = roadHeight,
+            };
+
+            AbsoluteLayout.SetLayoutBounds(roadImage1, new Rect(gameLayout.Width / 2 - roadImage1.Width / 2, 0, 400, 1000));
+            AbsoluteLayout.SetLayoutBounds(roadImage2, new Rect(gameLayout.Width / 2 - roadImage2.Width / 2, 0, 400, 200));
+            AbsoluteLayout.SetLayoutBounds(roadImage3, new Rect(gameLayout.Width / 2 - roadImage3.Width / 2, 0, 400, -150));
+            AbsoluteLayout.SetLayoutBounds(carImage, new Rect(100,100 ,400, 400));
+
 
         }
 
@@ -71,13 +91,16 @@ namespace TrafficEscape
         {
             base.OnAppearing();
 
+            setUpPlayerImage();
 
             setUpPlayerImage();
-            gameLayout.Children.Add(myImage);
             gameLayout.Children.Add(roadImage1);
+            gameLayout.Children.Add(roadImage2);
+            gameLayout.Children.Add(roadImage3);
+            gameLayout.Children.Add(carImage);
 
-            
-         
+
+
         }
 
         //keyhandler myk
@@ -93,7 +116,7 @@ namespace TrafficEscape
             }
             */
             roady += 1;
-            if(roady > 100)
+            if(roady > 200)
             {
                 roady = 0;
             }
@@ -104,6 +127,8 @@ namespace TrafficEscape
             {
                // myImage.TranslationX += 1;
                 roadImage1.TranslationY = roady;
+                roadImage2.TranslationY = roady;
+                roadImage3.TranslationY = roady;
             });
         }
 
