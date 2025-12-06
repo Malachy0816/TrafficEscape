@@ -1,6 +1,43 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="TrafficEscape.MainPage">
-    
+﻿<ContentPage
+    x:Class="TrafficEscape.GamePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid BackgroundColor="Gray">
+        <!-- Game area -->
+        <Grid RowDefinitions="*, 80">
+
+            <!-- Top area = play area -->
+            <Grid x:Name="PlayArea" BackgroundColor="Gray">
+                <Image x:Name="PlayerCar"
+                       Source="player_car.png"
+                       WidthRequest="90"
+                       HeightRequest="140"
+                       VerticalOptions="End"
+                       HorizontalOptions="Center"
+                       Margin="0,0,0,20"/>
+            </Grid>
+
+            <!-- Bottom area = left/right buttons -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*">
+                <Button Text="◀ LEFT"
+                        FontSize="22"
+                        Clicked="MoveLeft"
+                        BackgroundColor="Black"
+                        TextColor="White"/>
+
+                <Button Grid.Column="1"
+                        Text="RIGHT ▶"
+                        FontSize="22"
+                        Clicked="MoveRight"
+                        BackgroundColor="Black"
+                        TextColor="White"/>
+            </Grid>
+
+        </Grid>
+    </Grid>
+
 </ContentPage>
+
+
+
