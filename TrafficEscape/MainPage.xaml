@@ -7,7 +7,12 @@
         <Grid RowDefinitions="*, 80">
 
             <!-- Top area (PlayArea) -->
-            <Grid x:Name="PlayArea" Grid.Row="0">
+            <Grid x:Name="PlayArea"
+                Grid.Row="0"
+                BackgroundColor="Transparent"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
+
 
                 <!-- Drawn road behind car -->
                 <GraphicsView x:Name="RoadView"
