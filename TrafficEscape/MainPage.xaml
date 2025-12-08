@@ -4,40 +4,59 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <Grid BackgroundColor="Gray">
-        <!-- Game area -->
         <Grid RowDefinitions="*, 80">
 
-            <!-- Top area = play area -->
-            <Grid x:Name="PlayArea" BackgroundColor="Gray">
+            <!-- Top area (PlayArea) -->
+            <Grid x:Name="PlayArea" Grid.Row="0">
+
+                <!-- Drawn road behind car -->
+                <GraphicsView x:Name="RoadView"
+                              VerticalOptions="FillAndExpand"
+                              HorizontalOptions="FillAndExpand" />
+
+                <!-- Player Car on top -->
                 <Image x:Name="PlayerCar"
                        Source="player_car.png"
                        WidthRequest="90"
                        HeightRequest="140"
                        VerticalOptions="End"
                        HorizontalOptions="Center"
-                       Margin="0,0,0,20"/>
+                       Margin="0,0,0,20"
+                       Rotation="180"/>
             </Grid>
 
             <!-- Bottom area = left/right buttons -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,*">
-                <Button Text="◀ LEFT"
-                        FontSize="22"
-                        Clicked="MoveLeft"
-                        BackgroundColor="Black"
-                        TextColor="White"/>
+            <Grid Grid.Row="1"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
 
-                <Button Grid.Column="1"
-                        Text="RIGHT ▶"
-                        FontSize="22"
-                        Clicked="MoveRight"
-                        BackgroundColor="Black"
-                        TextColor="White"/>
+                <StackLayout Orientation="Horizontal"
+                             Spacing="20"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center">
+
+                    <Button Text="◀"
+                            WidthRequest="80"
+                            HeightRequest="60"
+                            BackgroundColor="Black"
+                            TextColor="White"
+                            Clicked="MoveLeft"/>
+
+                    <Button Text="▶"
+                            WidthRequest="80"
+                            HeightRequest="60"
+                            BackgroundColor="Black"
+                            TextColor="White"
+                            Clicked="MoveRight"/>
+
+                </StackLayout>
+
             </Grid>
-
         </Grid>
     </Grid>
 
 </ContentPage>
+
 
 
 
