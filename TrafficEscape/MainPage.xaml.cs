@@ -1,4 +1,6 @@
-﻿namespace TrafficEscape
+﻿using System.Threading.Tasks;
+
+namespace TrafficEscape
 {
     public partial class GamePage : ContentPage
     {
@@ -6,6 +8,8 @@
         Random rand = new Random();
         double collisionPadding = 20;
         bool gameRunning = false;
+        int score = 0;
+        int highScore = 0;
 
         string[] enemyImages =
         {
@@ -27,6 +31,8 @@
         public GamePage()
         {
             InitializeComponent();
+
+            highScore = Preferences.Get("HighScore", 0);
 
             RoadView.Drawable = roadDrawable;
 
@@ -215,22 +221,47 @@
         //STARTGAME METHOD
         void StartGame()
         {
+            // Start with a fresh score
+            score = 0;
+            ScoreLabel.Text = "Score: 0";
+
+            // Turn the game on
             gameRunning = true;
 
-            // Enemy spawner
+            // Enemy spawner timer
             Dispatcher.StartTimer(TimeSpan.FromMilliseconds(1200), () =>
             {
+                if (!gameRunning)
+                    return false;
+
                 SpawnEnemy();
                 return true;
             });
 
-            // Enemy movement
+            // Enemy movement timer
             Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
             {
+                if (!gameRunning)
+                    return false;
+
                 MoveEnemies();
                 return true;
             });
+
+            // Score timer
+            Dispatcher.StartTimer(TimeSpan.FromSeconds(1), () =>
+            {
+                if (!gameRunning)
+                    return false;
+
+                score += 5;
+                ScoreLabel.Text = "Score: " + score;
+
+                return true;
+            });
         }
+
+
         void PlayArea_SizeChanged(object sender, EventArgs e)
         {
             if (gameRunning)
@@ -247,20 +278,37 @@
         }
 
         //ENDGAME METHOD
-        void EndGame()
+        async Task EndGame()
         {
-            // Stop timers
+            // Stop the game
             gameRunning = false;
 
-            // Clear enemies
-            foreach (var e in enemies)
-            {
-                if (PlayArea.Children.Contains(e))
-                    PlayArea.Children.Remove(e);
-            }
-            enemies.Clear();
+            // Load the saved high score
+            int highScore = Preferences.Default.Get("HighScore", 0);
 
-            DisplayAlert("Crashed!", "You a car!", "OK");
+            // If the player beat the high score, save it
+            if (score > highScore)
+            {
+                highScore = score;
+                Preferences.Default.Set("HighScore", highScore);
+            }
+
+            // Update Game Over screen text
+            GameOverScore.Text = $"Score: {score}";
+            GameOverHighScore.Text = $"High Score: {highScore}";
+
+            // Show the Game Over overlay
+            GameOverOverlay.IsVisible = true;
+            GameOverOverlay.Opacity = 0;
+            await GameOverOverlay.FadeTo(1, 800, Easing.CubicIn);
         }
+
+        async void ReturnToMenu_Clicked(object sender, EventArgs e)
+        {
+            // Navigate back to Main Menu
+            await Shell.Current.GoToAsync("..");
+        }
+
+
     }
 }

@@ -28,6 +28,24 @@
                        HorizontalOptions="Center"
                        Margin="0,0,0,20"
                        Rotation="180"/>
+
+                <Label x:Name="ScoreLabel"
+                       Text="0"
+                       FontSize="30"
+                       TextColor="White"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Start"
+                       Margin="0, 30, 0, 0"
+                       ZIndex="999"
+                       FontAttributes="Bold">
+
+                    <Label.Shadow>
+                        <Shadow Brush="Black"
+                                Opacity="0.8"
+                                Radius="8"
+                                Offset="3,3"/>
+                    </Label.Shadow>
+                </Label>
             </Grid>
 
             <!-- Bottom area = left/right buttons -->
@@ -55,11 +73,59 @@
                             Clicked="MoveRight"/>
 
                 </StackLayout>
+            </Grid>
 
+            <Grid x:Name="GameOverOverlay"
+            IsVisible="False"
+            BackgroundColor="Black"
+            Opacity="0"
+            ZIndex="999"
+            Grid.RowSpan="2"
+            VerticalOptions="FillAndExpand"
+            HorizontalOptions="FillAndExpand">
+
+
+                <VerticalStackLayout
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Spacing="25">
+
+                    <Image Source="game_logo.png"
+                          WidthRequest="140"
+                          HeightRequest="140"
+                          HorizontalOptions="Center"/>
+
+                    <Label x:Name="GameOverTitle"
+                    Text="GAME OVER"
+                    FontSize="50"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    HorizontalOptions="Center"/>
+
+                    <Label x:Name="GameOverScore"
+                    Text="Score: 0"
+                    FontSize="28"
+                    TextColor="White"
+                    HorizontalOptions="Center"/>
+
+                    <Label x:Name="GameOverHighScore"
+                    Text="High Score: 0"
+                    FontSize="24"
+                    TextColor="Gold"
+                    HorizontalOptions="Center"/>
+
+                    <Button Text="Return to Menu"
+                    Clicked="ReturnToMenu_Clicked"
+                    BackgroundColor="{x:Static Colors.DarkRed}"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    WidthRequest="220"
+                    HeightRequest="55"
+                    CornerRadius="10"/>
+                </VerticalStackLayout>
             </Grid>
         </Grid>
     </Grid>
-
 </ContentPage>
 
 
