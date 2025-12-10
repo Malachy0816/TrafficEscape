@@ -10,10 +10,20 @@ namespace TrafficEscape
         bool gameRunning = false;
         int score = 0;
         int highScore = 0;
+        int lastLaneIndex = -1;
+        double enemySpeed = 5;
+        double[] laneLastY;
+        List<Image> coins = new List<Image>();
+        int totalCoins = Preferences.Default.Get("TotalCoins", 0); // saved coins
+        double spawnInterval = 1200;
+
+
 
         string[] enemyImages =
         {
             "black_car.png",
+            "black_car.png",
+            "blue_car.png",
             "blue_car.png",
             "green_car.png",
             "yellow_car.png",
@@ -21,7 +31,7 @@ namespace TrafficEscape
         };
 
         // How far the car moves per click
-        const double MoveAmount = 30;
+        const double MoveAmount = 50;
         double leftBoundary = -490;
         double rightBoundary = 490;
 
@@ -43,7 +53,7 @@ namespace TrafficEscape
 
             timer.Tick += (s, e) =>
             {
-                if(!gameRunning)
+                if (!gameRunning)
                 {
                     return;
                 }
@@ -68,8 +78,8 @@ namespace TrafficEscape
         {
             double newX = PlayerCar.TranslationX - MoveAmount;
 
-            if(newX < leftBoundary)
-               newX = leftBoundary;
+            if (newX < leftBoundary)
+                newX = leftBoundary;
 
             await PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear);
         }
@@ -79,8 +89,8 @@ namespace TrafficEscape
         {
             double newX = PlayerCar.TranslationX + MoveAmount;
 
-            if(newX > rightBoundary)
-               newX = rightBoundary;
+            if (newX > rightBoundary)
+                newX = rightBoundary;
 
             await PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear);
         }
@@ -88,7 +98,7 @@ namespace TrafficEscape
         //SPAWN ENEMY METHOD
         void SpawnEnemy()
         {
-            if(!gameRunning)
+            if (!gameRunning)
             {
                 return;
             }
@@ -113,7 +123,6 @@ namespace TrafficEscape
             };
 
             // Calculate lanes
-            // Calculate lanes (absolute positions)
             int laneCount = 5;
             double laneWidth = roadWidth / laneCount;
 
@@ -124,13 +133,30 @@ namespace TrafficEscape
                 lanes[i] = (laneWidth * i) + (laneWidth / 2) - (enemy.WidthRequest / 2);
             }
 
+            int laneIndex;
+            do
+            {
+                laneIndex = rand.Next(laneCount);
+            } while (laneIndex == lastLaneIndex);
 
-            // Pick lane
-            double laneX = lanes[rand.Next(lanes.Length)];
+            lastLaneIndex = laneIndex;
+
+            // Dynamic gap increases as enemies go faster
+            double minGap = 100 + (enemySpeed * 2);
+
+            // Prevent spawning too close vertically
+            if (laneLastY[laneIndex] > -minGap)
+            {
+                return;
+            }
+
+
 
             // Set enemy position BEFORE adding to layout
-            enemy.TranslationX = laneX;
+            enemy.TranslationX = lanes[laneIndex];
             enemy.TranslationY = -200;
+
+            laneLastY[laneIndex] = -200;
 
             // Now add safely
             if (PlayArea.Handler != null) // ensures UI is ready
@@ -148,7 +174,7 @@ namespace TrafficEscape
             {
                 return;
             }
-              
+
             // A list of enemies that should be removed at the end
             List<Image> toRemove = new List<Image>();
 
@@ -166,7 +192,9 @@ namespace TrafficEscape
 
                 try
                 {
-                    e.TranslationY += 5; // Move down
+                    e.TranslationY += enemySpeed; // Move down
+                    int laneIndex = GetLaneIndex(e.TranslationX);
+                    laneLastY[laneIndex] = e.TranslationY;
                 }
                 catch
                 {
@@ -201,6 +229,8 @@ namespace TrafficEscape
                 // If off the screen, mark it
                 if (e.TranslationY > PlayArea.Height + 200)
                 {
+                    int laneIndex = GetLaneIndex(e.TranslationX);
+                    laneLastY[laneIndex] = -500;
                     toRemove.Add(e);
                 }
             }
@@ -221,15 +251,71 @@ namespace TrafficEscape
         //STARTGAME METHOD
         void StartGame()
         {
-            // Start with a fresh score
+            // Reset score
             score = 0;
             ScoreLabel.Text = "Score: 0";
 
-            // Turn the game on
+            // Start game
             gameRunning = true;
 
-            // Enemy spawner timer
-            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(1200), () =>
+            // Enemy spawner — we recreate it when spawnInterval changes
+            StartEnemySpawner();
+
+            // Difficulty timer (every 5 seconds)
+            Dispatcher.StartTimer(TimeSpan.FromSeconds(5), () =>
+            {
+                if (!gameRunning)
+                    return false;
+
+                // Increase enemy speed
+                enemySpeed += 0.8;
+                if (enemySpeed > 25)
+                    enemySpeed = 25;
+
+                // Make enemies spawn a little faster
+                spawnInterval -= 100;
+                if (spawnInterval < 500)
+                    spawnInterval = 500;
+
+                // Restart spawner with new interval
+                StartEnemySpawner();
+
+                return true;
+            });
+
+            // Coin spawner
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(1800), () =>
+            {
+                if (!gameRunning) return false;
+                SpawnCoin();
+                return true;
+            });
+
+            // Movement update
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
+            {
+                if (!gameRunning) return false;
+
+                MoveEnemies();
+                MoveCoins();
+                return true;
+            });
+
+            // Score timer
+            Dispatcher.StartTimer(TimeSpan.FromSeconds(1), () =>
+            {
+                if (!gameRunning) return false;
+
+                score += 5;
+                ScoreLabel.Text = $"Score: {score}";
+                return true;
+            });
+        }
+
+        //START ENEMY TIMER METHOD
+        void StartEnemySpawner()
+        {
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(spawnInterval), () =>
             {
                 if (!gameRunning)
                     return false;
@@ -237,29 +323,58 @@ namespace TrafficEscape
                 SpawnEnemy();
                 return true;
             });
-
-            // Enemy movement timer
-            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
-            {
-                if (!gameRunning)
-                    return false;
-
-                MoveEnemies();
-                return true;
-            });
-
-            // Score timer
-            Dispatcher.StartTimer(TimeSpan.FromSeconds(1), () =>
-            {
-                if (!gameRunning)
-                    return false;
-
-                score += 5;
-                ScoreLabel.Text = "Score: " + score;
-
-                return true;
-            });
         }
+
+
+
+        //MOVE COINS METHOD
+        void MoveCoins()
+        {
+            if (!gameRunning)
+                return;
+
+            List<Image> toRemove = new List<Image>();
+
+            foreach (var coin in coins)
+            {
+                // Move coin down
+                coin.TranslationY += enemySpeed;
+
+                // Collision rectangle with padding
+                Rect playerRect = new Rect(
+                    PlayerCar.X + PlayerCar.TranslationX + 20,
+                    PlayerCar.Y + PlayerCar.TranslationY + 20,
+                    PlayerCar.Width - 40,
+                    PlayerCar.Height - 40);
+
+                Rect coinRect = new Rect(
+                    coin.X + coin.TranslationX,
+                    coin.Y + coin.TranslationY,
+                    coin.Width,
+                    coin.Height);
+
+                // Collect coin
+                if (playerRect.IntersectsWith(coinRect))
+                {
+                    totalCoins++;
+                    Preferences.Default.Set("TotalCoins", totalCoins);
+                    toRemove.Add(coin);
+                    continue;
+                }
+
+                // Off screen → remove
+                if (coin.TranslationY > PlayArea.Height + 200)
+                    toRemove.Add(coin);
+            }
+
+            // Remove safely
+            foreach (var coin in toRemove)
+            {
+                PlayArea.Children.Remove(coin);
+                coins.Remove(coin);
+            }
+        }
+
 
 
         void PlayArea_SizeChanged(object sender, EventArgs e)
@@ -269,6 +384,13 @@ namespace TrafficEscape
 
             if (PlayArea.Width > 0 && PlayArea.Height > 0)
             {
+                laneLastY = new double[5];
+                for (int i = 0; i < 5; i++)
+                {
+                    laneLastY[i] = -500;
+                }
+
+                gameRunning = true;
                 StartGame();
             }
         }
@@ -309,6 +431,59 @@ namespace TrafficEscape
             await Shell.Current.GoToAsync("..");
         }
 
+        int GetLaneIndex(double x)
+        {
+            double roadWidth = PlayArea.Width;
+            int laneCount = 5;
+            double laneWidth = roadWidth / laneCount;
 
+            int index = (int)((x + roadWidth / 2) / laneWidth);
+            return Math.Clamp(index, 0, laneCount - 1);
+        }
+
+        void SpawnCoin()
+        {
+            if (!gameRunning)
+                return;
+
+            double roadWidth = PlayArea.Width;
+            if (roadWidth <= 0)
+                return;
+
+            // Create coin image
+            Image coin = new Image
+            {
+                Source = "coin.png",
+                WidthRequest = 50,
+                HeightRequest = 50,
+                HorizontalOptions = LayoutOptions.Start,
+                VerticalOptions = LayoutOptions.Start
+            };
+
+            // Lanes (same as enemies)
+            int laneCount = 5;
+            double laneWidth = roadWidth / laneCount;
+
+            double[] lanes = new double[laneCount];
+            for (int i = 0; i < laneCount; i++)
+                lanes[i] = (laneWidth * i) + (laneWidth / 2) - (coin.WidthRequest / 2);
+
+            int laneIndex = rand.Next(laneCount);
+            double laneX = lanes[laneIndex];
+
+            // Position coin
+            coin.TranslationX = laneX;
+            coin.TranslationY = -200;
+
+            // Add to play area
+            if (PlayArea.Handler != null)
+            {
+                // Coins MUST be behind cars → add BEFORE enemies!
+                PlayArea.Children.Insert(1, coin);
+                coins.Add(coin);
+            }
+        }
     }
 }
+
+

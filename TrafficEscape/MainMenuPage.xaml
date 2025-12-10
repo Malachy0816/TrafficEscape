@@ -42,6 +42,13 @@
                 FontAttributes="Bold"
                 CornerRadius="10" />
 
+         <Label x:Name="CoinsLabel"
+                Text="Coins: 0"
+                FontSize="24"
+                TextColor="Gold"
+                HorizontalOptions="Center"/>
+
+
     </VerticalStackLayout>
 
 </ContentPage>
