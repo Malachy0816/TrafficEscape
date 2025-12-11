@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using Plugin.Maui.Audio;
+using System.Threading.Tasks;
+
+
 
 namespace TrafficEscape
 {
@@ -16,8 +19,8 @@ namespace TrafficEscape
         List<Image> coins = new List<Image>();
         int totalCoins = Preferences.Default.Get("TotalCoins", 0); // saved coins
         double spawnInterval = 1200;
-
-
+        IAudioPlayer gameMusic;
+        IAudioPlayer gameOverSound;
 
         string[] enemyImages =
         {
@@ -31,11 +34,29 @@ namespace TrafficEscape
         };
 
         // How far the car moves per click
-        const double MoveAmount = 50;
+        const double MoveAmount = 60;
         double leftBoundary = -490;
         double rightBoundary = 490;
 
         RoadDrawable roadDrawable = new RoadDrawable();
+
+        async Task LoadGameAudio()
+        {
+            if (gameMusic == null)
+            {
+                var file = await FileSystem.OpenAppPackageFileAsync("GameAudio.mp3");
+                gameMusic = AudioManager.Current.CreatePlayer(file);
+                gameMusic.Loop = true;
+            }
+
+            if (gameOverSound == null)
+            {
+                var file2 = await FileSystem.OpenAppPackageFileAsync("GameOver.mp3");
+                gameOverSound = AudioManager.Current.CreatePlayer(file2);
+                gameOverSound.Loop = false;
+            }
+        }
+
 
         //CONSTRUCTOR
         public GamePage()
@@ -249,8 +270,12 @@ namespace TrafficEscape
         }
 
         //STARTGAME METHOD
-        void StartGame()
+        async Task StartGame()
         {
+
+            await LoadGameAudio();
+            gameMusic?.Play();
+
             // Reset score
             score = 0;
             ScoreLabel.Text = "Score: 0";
@@ -377,7 +402,7 @@ namespace TrafficEscape
 
 
 
-        void PlayArea_SizeChanged(object sender, EventArgs e)
+        async void PlayArea_SizeChanged(object sender, EventArgs e)
         {
             if (gameRunning)
                 return;
@@ -391,7 +416,7 @@ namespace TrafficEscape
                 }
 
                 gameRunning = true;
-                StartGame();
+                await StartGame();
             }
         }
         bool CheckCollision(Rect player, Rect enemy)
@@ -402,6 +427,9 @@ namespace TrafficEscape
         //ENDGAME METHOD
         async Task EndGame()
         {
+            gameMusic?.Stop();
+            gameOverSound?.Play();
+
             // Stop the game
             gameRunning = false;
 
