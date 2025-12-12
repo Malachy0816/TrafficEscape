@@ -8,6 +8,7 @@
 
             Routing.RegisterRoute(nameof(GamePage), typeof(GamePage));
             Routing.RegisterRoute(nameof(MainMenuPage), typeof(MainMenuPage));
+            Routing.RegisterRoute(nameof(OptionsPage), typeof(OptionsPage));
         }
 
     }

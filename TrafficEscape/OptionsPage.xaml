@@ -1,0 +1,104 @@
+<ContentPage
+    x:Class="TrafficEscape.OptionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="Black">
+
+    <Grid>
+
+        <VerticalStackLayout
+        Padding="30"
+        Spacing="30"
+        VerticalOptions="Center"
+        HorizontalOptions="Center">
+
+            <!-- Title -->
+            <Label Text="OPTIONS"
+               FontSize="40"
+               TextColor="White"
+               HorizontalOptions="Center"
+               FontAttributes="Bold"/>
+
+            <!-- Sound Toggle Row -->
+            <HorizontalStackLayout
+            Spacing="20"
+            HorizontalOptions="Center">
+
+                <Label Text="Sound"
+                   FontSize="22"
+                   TextColor="White"
+                   VerticalOptions="Center"/>
+
+                <Switch x:Name="SoundSwitch"
+                    OnColor="Green"
+                    ThumbColor="White"
+                    Toggled="SoundSwitch_Toggled"/>
+            </HorizontalStackLayout>
+
+            <Button Text="RESET HIGH SCORE"
+        WidthRequest="220"
+        HeightRequest="55"
+        BackgroundColor="Red"
+        TextColor="White"
+        FontAttributes="Bold"
+        CornerRadius="10"
+        Clicked="ResetHighScore_Clicked"/>
+
+            <!-- Back Button -->
+            <Button Text="BACK"
+                WidthRequest="220"
+                HeightRequest="55"
+                BackgroundColor="red"
+                TextColor="White"
+                FontAttributes="Bold"
+                CornerRadius="10"
+                Clicked="Back_Clicked"/>
+
+        </VerticalStackLayout>
+
+        <!-- CONFIRM RESET OVERLAY -->
+        <Grid x:Name="ResetOverlay"
+              IsVisible="False"
+              BackgroundColor="Black">
+
+            <Frame BackgroundColor="DarkGray"
+                   CornerRadius="16"
+                   Padding="25"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+
+                <VerticalStackLayout Spacing="20">
+
+                    <Label Text="Reset High Score?"
+                           FontSize="22"
+                           TextColor="White"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"/>
+
+                    <Label Text="This cannot be undone."
+                           FontSize="16"
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+
+                    <HorizontalStackLayout Spacing="20"
+                                           HorizontalOptions="Center">
+
+                        <Button Text="YES"
+                                WidthRequest="100"
+                                BackgroundColor="Red"
+                                TextColor="White"
+                                Clicked="ConfirmReset_Clicked"/>
+
+                        <Button Text="NO"
+                                WidthRequest="100"
+                                BackgroundColor="Gray"
+                                TextColor="White"
+                                Clicked="CancelReset_Clicked"/>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+    </Grid>
+</ContentPage>
+

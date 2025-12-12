@@ -23,7 +23,16 @@ namespace TrafficEscape
                 menuMusic.Loop = true;
             }
 
-            menuMusic?.Play();
+            bool soundEnabled = Preferences.Get("SoundEnabled", true);
+
+            if (soundEnabled)
+            {
+                menuMusic?.Play();
+            }
+            else
+            {
+                menuMusic?.Stop();
+            }
 
             int highScore = Preferences.Default.Get("HighScore", 0);
             HighScoreLabel.Text = $"High Score: {highScore}";
@@ -33,17 +42,18 @@ namespace TrafficEscape
 
         }
 
-        protected override void OnDisappearing()
+        private async void StartGame_Clicked(object sender, EventArgs e)
         {
-            base.OnDisappearing();
+
             menuMusic?.Stop();
-        }
-
-        private void StartGame_Clicked(object sender, EventArgs e)
-        {
             // Navigate to the game page
-            Shell.Current.GoToAsync(nameof(GamePage));
+            await Shell.Current.GoToAsync(nameof(GamePage));
 
         }
+        private async void Options_Clicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync(nameof(OptionsPage));
+        }
+
     }
 }

@@ -40,7 +40,8 @@
                 BackgroundColor="Gray"
                 TextColor="White"
                 FontAttributes="Bold"
-                CornerRadius="10" />
+                CornerRadius="10"
+                Clicked="Options_Clicked"/>
 
         <Label x:Name="CoinsLabel"
                 Text="Coins: 0"

@@ -274,7 +274,16 @@ namespace TrafficEscape
         {
 
             await LoadGameAudio();
-            gameMusic?.Play();
+            bool soundEnabled = Preferences.Get("SoundEnabled", true);
+
+            if (soundEnabled)
+            {
+                gameMusic?.Play();
+            }
+            else
+            {
+                gameMusic?.Stop();
+            }
 
             // Reset score
             score = 0;
@@ -428,7 +437,14 @@ namespace TrafficEscape
         async Task EndGame()
         {
             gameMusic?.Stop();
-            gameOverSound?.Play();
+
+            bool soundEnabled = Preferences.Get("SoundEnabled", true);
+
+            if (soundEnabled)
+            {
+                gameOverSound?.Play();
+            }
+
 
             // Stop the game
             gameRunning = false;
@@ -455,6 +471,7 @@ namespace TrafficEscape
 
         async void ReturnToMenu_Clicked(object sender, EventArgs e)
         {
+            gameOverSound?.Stop();
             // Navigate back to Main Menu
             await Shell.Current.GoToAsync("..");
         }
