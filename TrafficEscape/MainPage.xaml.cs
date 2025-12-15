@@ -13,12 +13,10 @@ namespace TrafficEscape
         bool gameRunning = false;
         int score = 0;
         int highScore = 0;
-        int lastLaneIndex = -1;
         double enemySpeed = 5;
-        double[] laneLastY;
+        double spawnInterval = 700;
         List<Image> coins = new List<Image>();
-        int totalCoins = Preferences.Default.Get("TotalCoins", 0); // saved coins
-        double spawnInterval = 1200;
+        int totalCoins = Preferences.Default.Get("TotalCoins", 0);
         IAudioPlayer gameMusic;
         IAudioPlayer gameOverSound;
 
@@ -56,7 +54,6 @@ namespace TrafficEscape
                 gameOverSound.Loop = false;
             }
         }
-
 
         //CONSTRUCTOR
         public GamePage()
@@ -120,72 +117,36 @@ namespace TrafficEscape
         void SpawnEnemy()
         {
             if (!gameRunning)
-            {
                 return;
-            }
 
             double roadWidth = PlayArea.Width;
-
-            // If width not ready, try again later
             if (roadWidth <= 0)
                 return;
 
-            //random enemy
-            string carImage = enemyImages[rand.Next(enemyImages.Length)];
-
-            //Create enemy
             Image enemy = new Image
             {
-                Source = carImage,
+                Source = enemyImages[rand.Next(enemyImages.Length)],
                 WidthRequest = 80,
                 HeightRequest = 120,
-                VerticalOptions = LayoutOptions.Start,
                 HorizontalOptions = LayoutOptions.Start,
+                VerticalOptions = LayoutOptions.Start
             };
 
-            // Calculate lanes
             int laneCount = 5;
             double laneWidth = roadWidth / laneCount;
 
-            double[] lanes = new double[laneCount];
+            int laneIndex = rand.Next(laneCount);
 
-            for (int i = 0; i < laneCount; i++)
-            {
-                lanes[i] = (laneWidth * i) + (laneWidth / 2) - (enemy.WidthRequest / 2);
-            }
+            double laneX = (laneWidth * laneIndex) + (laneWidth / 2) - (enemy.WidthRequest / 2);
 
-            int laneIndex;
-            do
-            {
-                laneIndex = rand.Next(laneCount);
-            } while (laneIndex == lastLaneIndex);
-
-            lastLaneIndex = laneIndex;
-
-            // Dynamic gap increases as enemies go faster
-            double minGap = 100 + (enemySpeed * 2);
-
-            // Prevent spawning too close vertically
-            if (laneLastY[laneIndex] > -minGap)
-            {
-                return;
-            }
-
-
-
-            // Set enemy position BEFORE adding to layout
-            enemy.TranslationX = lanes[laneIndex];
+            enemy.TranslationX = laneX;
             enemy.TranslationY = -200;
 
-            laneLastY[laneIndex] = -200;
-
-            // Now add safely
-            if (PlayArea.Handler != null) // ensures UI is ready
+            if (PlayArea.Handler != null)
             {
                 PlayArea.Children.Add(enemy);
                 enemies.Add(enemy);
             }
-
         }
 
         //MOVE ENEMY METHOD
@@ -194,17 +155,14 @@ namespace TrafficEscape
             if (!gameRunning)
             {
                 return;
-            }
+            }          
 
-            // A list of enemies that should be removed at the end
             List<Image> toRemove = new List<Image>();
 
-            // First pass: move & mark
             for (int i = 0; i < enemies.Count; i++)
             {
                 Image e = enemies[i];
 
-                // If it no longer exists in the layout, mark it
                 if (!PlayArea.Children.Contains(e))
                 {
                     toRemove.Add(e);
@@ -213,13 +171,11 @@ namespace TrafficEscape
 
                 try
                 {
-                    e.TranslationY += enemySpeed; // Move down
-                    int laneIndex = GetLaneIndex(e.TranslationX);
-                    laneLastY[laneIndex] = e.TranslationY;
+                    // Move down
+                    e.TranslationY += enemySpeed;
                 }
                 catch
                 {
-                    // If MAUI disposed it mid-frame, mark for removal
                     toRemove.Add(e);
                     continue;
                 }
@@ -237,26 +193,18 @@ namespace TrafficEscape
                     e.Width - (collisionPadding * 2),
                     e.Height - (collisionPadding * 2));
 
-
-
-                // Check collision
                 if (CheckCollision(playerRect, enemyRect))
                 {
                     EndGame();
                     return;
                 }
 
-
-                // If off the screen, mark it
                 if (e.TranslationY > PlayArea.Height + 200)
                 {
-                    int laneIndex = GetLaneIndex(e.TranslationX);
-                    laneLastY[laneIndex] = -500;
                     toRemove.Add(e);
                 }
             }
 
-            // Second pass: safely remove all marked enemies
             foreach (var enemy in toRemove)
             {
                 if (PlayArea.Children.Contains(enemy))
@@ -289,30 +237,29 @@ namespace TrafficEscape
             score = 0;
             ScoreLabel.Text = "Score: 0";
 
-            // Start game
             gameRunning = true;
 
-            // Enemy spawner — we recreate it when spawnInterval changes
             StartEnemySpawner();
 
-            // Difficulty timer (every 5 seconds)
+            // Difficulty timer
             Dispatcher.StartTimer(TimeSpan.FromSeconds(5), () =>
             {
                 if (!gameRunning)
+                {
                     return false;
+                }
 
-                // Increase enemy speed
-                enemySpeed += 0.8;
-                if (enemySpeed > 25)
-                    enemySpeed = 25;
+                enemySpeed += 0.6;
+                if (enemySpeed > 22)
+                {
+                    enemySpeed = 22;
+                }
 
-                // Make enemies spawn a little faster
-                spawnInterval -= 100;
-                if (spawnInterval < 500)
-                    spawnInterval = 500;
-
-                // Restart spawner with new interval
-                StartEnemySpawner();
+                spawnInterval -= 50;
+                if (spawnInterval < 400)
+                {
+                    spawnInterval = 400;
+                }
 
                 return true;
             });
@@ -346,10 +293,10 @@ namespace TrafficEscape
             });
         }
 
-        //START ENEMY TIMER METHOD
+        //START ENEMY SPAWNER METHOD
         void StartEnemySpawner()
         {
-            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(spawnInterval), () =>
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(700), () =>
             {
                 if (!gameRunning)
                     return false;
@@ -358,8 +305,6 @@ namespace TrafficEscape
                 return true;
             });
         }
-
-
 
         //MOVE COINS METHOD
         void MoveCoins()
@@ -408,9 +353,6 @@ namespace TrafficEscape
                 coins.Remove(coin);
             }
         }
-
-
-
         async void PlayArea_SizeChanged(object sender, EventArgs e)
         {
             if (gameRunning)
@@ -418,13 +360,6 @@ namespace TrafficEscape
 
             if (PlayArea.Width > 0 && PlayArea.Height > 0)
             {
-                laneLastY = new double[5];
-                for (int i = 0; i < 5; i++)
-                {
-                    laneLastY[i] = -500;
-                }
-
-                gameRunning = true;
                 await StartGame();
             }
         }
@@ -476,20 +411,12 @@ namespace TrafficEscape
             await Shell.Current.GoToAsync("..");
         }
 
-        int GetLaneIndex(double x)
-        {
-            double roadWidth = PlayArea.Width;
-            int laneCount = 5;
-            double laneWidth = roadWidth / laneCount;
-
-            int index = (int)((x + roadWidth / 2) / laneWidth);
-            return Math.Clamp(index, 0, laneCount - 1);
-        }
-
         void SpawnCoin()
         {
             if (!gameRunning)
+            {
                 return;
+            }
 
             double roadWidth = PlayArea.Width;
             if (roadWidth <= 0)
@@ -520,10 +447,8 @@ namespace TrafficEscape
             coin.TranslationX = laneX;
             coin.TranslationY = -200;
 
-            // Add to play area
             if (PlayArea.Handler != null)
             {
-                // Coins MUST be behind cars → add BEFORE enemies!
                 PlayArea.Children.Insert(1, coin);
                 coins.Add(coin);
             }

@@ -61,8 +61,8 @@
               IsVisible="False"
               BackgroundColor="Black">
 
-            <Frame BackgroundColor="DarkGray"
-                   CornerRadius="16"
+            <Border BackgroundColor="DarkGray"
+                   StrokeShape="RoundRectangle 16"
                    Padding="25"
                    HorizontalOptions="Center"
                    VerticalOptions="Center">
@@ -95,9 +95,8 @@
                                 TextColor="White"
                                 Clicked="CancelReset_Clicked"/>
                     </HorizontalStackLayout>
-
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
         </Grid>
     </Grid>
 </ContentPage>
