@@ -14,11 +14,12 @@ namespace TrafficEscape
         int score = 0;
         int highScore = 0;
         double enemySpeed = 5;
-        double spawnInterval = 700;
         List<Image> coins = new List<Image>();
         int totalCoins = Preferences.Default.Get("TotalCoins", 0);
         IAudioPlayer gameMusic;
         IAudioPlayer gameOverSound;
+        bool hasShield = false;
+        
 
         string[] enemyImages =
         {
@@ -99,7 +100,10 @@ namespace TrafficEscape
             if (newX < leftBoundary)
                 newX = leftBoundary;
 
-            await PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear);
+            await Task.WhenAll(
+                PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear),
+                ShieldIcon.TranslateTo(newX, ShieldIcon.TranslationY, 80, Easing.Linear)
+                );
         }
 
         //MOVE RIGHT METHOD
@@ -110,7 +114,10 @@ namespace TrafficEscape
             if (newX > rightBoundary)
                 newX = rightBoundary;
 
-            await PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear);
+            await Task.WhenAll(
+                PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear),
+                ShieldIcon.TranslateTo(newX, ShieldIcon.TranslationY, 80, Easing.Linear)
+                );
         }
 
         //SPAWN ENEMY METHOD
@@ -195,8 +202,18 @@ namespace TrafficEscape
 
                 if (CheckCollision(playerRect, enemyRect))
                 {
-                    EndGame();
-                    return;
+                    if(hasShield)
+                    {
+                        hasShield = false;
+                        ShieldIcon.IsVisible = false;
+                        toRemove.Add(e);
+                        continue;
+                    }
+                    else
+                    {
+                        EndGame();
+                        return;
+                    }
                 }
 
                 if (e.TranslationY > PlayArea.Height + 200)
@@ -237,6 +254,9 @@ namespace TrafficEscape
             score = 0;
             ScoreLabel.Text = "Score: 0";
 
+            hasShield = false;
+            ShieldIcon.IsVisible = false;
+
             gameRunning = true;
 
             StartEnemySpawner();
@@ -254,23 +274,29 @@ namespace TrafficEscape
                 {
                     enemySpeed = 22;
                 }
-
-                spawnInterval -= 50;
-                if (spawnInterval < 400)
-                {
-                    spawnInterval = 400;
-                }
-
                 return true;
             });
 
             // Coin spawner
             Dispatcher.StartTimer(TimeSpan.FromMilliseconds(1800), () =>
             {
-                if (!gameRunning) return false;
+                if (!gameRunning)
+                {
+                    return false;
+                }
                 SpawnCoin();
                 return true;
             });
+
+            // Shield spawner
+            Dispatcher.StartTimer(TimeSpan.FromMilliseconds(4500), () =>
+            {
+                if (!gameRunning) return false;
+
+                SpawnShield();
+                return true;
+            });
+
 
             // Movement update
             Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
@@ -335,15 +361,25 @@ namespace TrafficEscape
                 // Collect coin
                 if (playerRect.IntersectsWith(coinRect))
                 {
-                    totalCoins++;
-                    Preferences.Default.Set("TotalCoins", totalCoins);
+                    if (coin.Source.ToString().Contains("shield"))
+                    {
+                        hasShield = true;
+                        ShieldIcon.IsVisible = true;
+                    }
+                    else
+                    {
+                        totalCoins++;
+                        Preferences.Default.Set("TotalCoins", totalCoins);
+                    }
+
                     toRemove.Add(coin);
                     continue;
                 }
 
-                // Off screen → remove
                 if (coin.TranslationY > PlayArea.Height + 200)
+                {
                     toRemove.Add(coin);
+                }
             }
 
             // Remove safely
@@ -379,7 +415,6 @@ namespace TrafficEscape
             {
                 gameOverSound?.Play();
             }
-
 
             // Stop the game
             gameRunning = false;
@@ -452,6 +487,49 @@ namespace TrafficEscape
                 PlayArea.Children.Insert(1, coin);
                 coins.Add(coin);
             }
+        }
+
+        void SpawnShield()
+        {
+            if (!gameRunning)
+            {
+                return;
+            }
+
+            if (hasShield)
+            {
+                return;
+            }
+
+            if (rand.NextDouble() > 0.45)
+            {
+                return;
+            }
+
+            double roadWidth = PlayArea.Width;
+            if (roadWidth <= 0)
+            {
+                return;
+            }
+
+            Image shield = new Image
+            {
+                Source = "shield.png",
+                WidthRequest = 60,
+                HeightRequest = 60,
+                HorizontalOptions = LayoutOptions.Start,
+                VerticalOptions = LayoutOptions.Start
+            };
+
+            int laneCount = 5;
+            double laneWidth = roadWidth / laneCount;
+            int laneIndex = rand.Next(laneCount);
+
+            shield.TranslationX = (laneWidth * laneIndex) + (laneWidth / 2) - 30;
+            shield.TranslationY = -200;
+
+            PlayArea.Children.Insert(1, shield);
+            coins.Add(shield);
         }
     }
 }
