@@ -7,6 +7,7 @@ namespace TrafficEscape
 {
     public partial class GamePage : ContentPage
     {
+        //declare variables, lists, randoms and audio players
         List<Image> enemies = new List<Image>();
         Random rand = new Random();
         double collisionPadding = 20;
@@ -19,8 +20,8 @@ namespace TrafficEscape
         IAudioPlayer gameMusic;
         IAudioPlayer gameOverSound;
         bool hasShield = false;
-        
 
+        //array of enemy images
         string[] enemyImages =
         {
             "black_car.png",
@@ -34,13 +35,17 @@ namespace TrafficEscape
 
         // How far the car moves per click
         const double MoveAmount = 60;
+
+        // Boundaries for car movement
         double leftBoundary = -490;
         double rightBoundary = 490;
 
         RoadDrawable roadDrawable = new RoadDrawable();
 
+        //LOAD GAME AUDIO METHOD
         async Task LoadGameAudio()
         {
+            //game music sound
             if (gameMusic == null)
             {
                 var file = await FileSystem.OpenAppPackageFileAsync("GameAudio.mp3");
@@ -48,6 +53,7 @@ namespace TrafficEscape
                 gameMusic.Loop = true;
             }
 
+            //game over sound
             if (gameOverSound == null)
             {
                 var file2 = await FileSystem.OpenAppPackageFileAsync("GameOver.mp3");
@@ -67,6 +73,7 @@ namespace TrafficEscape
 
             PlayArea.SizeChanged += PlayArea_SizeChanged;
 
+            //timer for scrolling animation
             var timer = Application.Current.Dispatcher.CreateTimer();
             timer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
 
@@ -76,12 +83,12 @@ namespace TrafficEscape
                 {
                     return;
                 }
-
+                //move road down
                 roadDrawable.Offset += roadDrawable.Speed;
 
                 float height = (float)RoadView.Height;
 
-                // Wraps around so lines loop smoothly
+                //loops road scrolling
                 if (roadDrawable.Offset > height)
                 {
                     roadDrawable.Offset = 0;
@@ -100,6 +107,7 @@ namespace TrafficEscape
             if (newX < leftBoundary)
                 newX = leftBoundary;
 
+            //move car and shield together
             await Task.WhenAll(
                 PlayerCar.TranslateTo(newX, PlayerCar.TranslationY, 80, Easing.Linear),
                 ShieldIcon.TranslateTo(newX, ShieldIcon.TranslationY, 80, Easing.Linear)
@@ -130,6 +138,7 @@ namespace TrafficEscape
             if (roadWidth <= 0)
                 return;
 
+            //enemy image
             Image enemy = new Image
             {
                 Source = enemyImages[rand.Next(enemyImages.Length)],
@@ -139,6 +148,7 @@ namespace TrafficEscape
                 VerticalOptions = LayoutOptions.Start
             };
 
+            //random lane
             int laneCount = 5;
             double laneWidth = roadWidth / laneCount;
 
@@ -146,9 +156,11 @@ namespace TrafficEscape
 
             double laneX = (laneWidth * laneIndex) + (laneWidth / 2) - (enemy.WidthRequest / 2);
 
+            //position in lane
             enemy.TranslationX = laneX;
             enemy.TranslationY = -200;
 
+            //add to screen
             if (PlayArea.Handler != null)
             {
                 PlayArea.Children.Add(enemy);
@@ -175,7 +187,7 @@ namespace TrafficEscape
                     toRemove.Add(e);
                     continue;
                 }
-
+                // try catch as there was exceptions being thrown here
                 try
                 {
                     // Move down
@@ -200,10 +212,12 @@ namespace TrafficEscape
                     e.Width - (collisionPadding * 2),
                     e.Height - (collisionPadding * 2));
 
+                // Check collision
                 if (CheckCollision(playerRect, enemyRect))
                 {
                     if(hasShield)
                     {
+                        //shield takes hit and gets removed
                         hasShield = false;
                         ShieldIcon.IsVisible = false;
                         toRemove.Add(e);
@@ -216,6 +230,7 @@ namespace TrafficEscape
                     }
                 }
 
+                //removes enemies off screen
                 if (e.TranslationY > PlayArea.Height + 200)
                 {
                     toRemove.Add(e);
@@ -241,6 +256,7 @@ namespace TrafficEscape
             await LoadGameAudio();
             bool soundEnabled = Preferences.Get("SoundEnabled", true);
 
+            //pla y game music if enabled
             if (soundEnabled)
             {
                 gameMusic?.Play();
@@ -254,11 +270,13 @@ namespace TrafficEscape
             score = 0;
             ScoreLabel.Text = "Score: 0";
 
+            //reset shield
             hasShield = false;
             ShieldIcon.IsVisible = false;
 
             gameRunning = true;
 
+            //start spawner
             StartEnemySpawner();
 
             // Difficulty timer
@@ -298,7 +316,7 @@ namespace TrafficEscape
             });
 
 
-            // Movement update
+            // Movement update (60 fps)
             Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
             {
                 if (!gameRunning) return false;
@@ -308,7 +326,7 @@ namespace TrafficEscape
                 return true;
             });
 
-            // Score timer
+            // Score increases
             Dispatcher.StartTimer(TimeSpan.FromSeconds(1), () =>
             {
                 if (!gameRunning) return false;
@@ -407,6 +425,7 @@ namespace TrafficEscape
         //ENDGAME METHOD
         async Task EndGame()
         {
+            //end game music
             gameMusic?.Stop();
 
             bool soundEnabled = Preferences.Get("SoundEnabled", true);
@@ -422,7 +441,7 @@ namespace TrafficEscape
             // Load the saved high score
             int highScore = Preferences.Default.Get("HighScore", 0);
 
-            // If the player beat the high score, save it
+            // save high score
             if (score > highScore)
             {
                 highScore = score;
@@ -467,7 +486,7 @@ namespace TrafficEscape
                 VerticalOptions = LayoutOptions.Start
             };
 
-            // Lanes (same as enemies)
+            // chose random lane
             int laneCount = 5;
             double laneWidth = roadWidth / laneCount;
 
@@ -482,6 +501,7 @@ namespace TrafficEscape
             coin.TranslationX = laneX;
             coin.TranslationY = -200;
 
+            //cars appear on top of coins
             if (PlayArea.Handler != null)
             {
                 PlayArea.Children.Insert(1, coin);
@@ -496,11 +516,13 @@ namespace TrafficEscape
                 return;
             }
 
+            //checks if player already has shield
             if (hasShield)
             {
                 return;
             }
 
+            //possibility of spawning shield
             if (rand.NextDouble() > 0.45)
             {
                 return;
@@ -512,6 +534,7 @@ namespace TrafficEscape
                 return;
             }
 
+            //create shield image
             Image shield = new Image
             {
                 Source = "shield.png",
@@ -521,14 +544,18 @@ namespace TrafficEscape
                 VerticalOptions = LayoutOptions.Start
             };
 
+            //choose random lane
             int laneCount = 5;
             double laneWidth = roadWidth / laneCount;
             int laneIndex = rand.Next(laneCount);
 
+            //position shield
             shield.TranslationX = (laneWidth * laneIndex) + (laneWidth / 2) - 30;
             shield.TranslationY = -200;
 
             PlayArea.Children.Insert(1, shield);
+
+            //MoveCoins() will move the shield
             coins.Add(shield);
         }
     }

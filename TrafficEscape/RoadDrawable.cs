@@ -33,7 +33,7 @@ namespace TrafficEscape
 
 
 
-            // 5 lanes -> 4 dividers
+            // 5 lanes
             int laneCount = 5;
             float laneWidth = width / laneCount;
 

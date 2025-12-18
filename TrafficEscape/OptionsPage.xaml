@@ -12,14 +12,12 @@
         VerticalOptions="Center"
         HorizontalOptions="Center">
 
-            <!-- Title -->
             <Label Text="OPTIONS"
                FontSize="40"
                TextColor="White"
                HorizontalOptions="Center"
                FontAttributes="Bold"/>
 
-            <!-- Sound Toggle Row -->
             <HorizontalStackLayout
             Spacing="20"
             HorizontalOptions="Center">

@@ -127,7 +127,7 @@
 
                     <Button Text="Return to Menu"
                     Clicked="ReturnToMenu_Clicked"
-                    BackgroundColor="{x:Static Colors.DarkRed}"
+                    BackgroundColor="DarkRed"
                     TextColor="White"
                     FontAttributes="Bold"
                     WidthRequest="220"

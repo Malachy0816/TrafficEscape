@@ -33,7 +33,7 @@
                 FontAttributes="Bold"
                 CornerRadius="10" />
 
-        <!-- Options Button -->
+        <!-- Options button -->
         <Button Text="OPTIONS"
                 WidthRequest="220"
                 HeightRequest="55"
