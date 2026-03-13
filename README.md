@@ -17,4 +17,11 @@ Usage:
 AI Acknowledgement:
 1. Github CoPilot: used for code suggestions in the c# files.
 2. Chatgpt: Used to identify thrown exception causes, design ideas, code review and README review.
-3. Pixellab: Used to generate the car images used in the game. 
+3. Pixellab: Used to generate the car images used in the game.
+
+<img width="1643" height="916" alt="image" src="https://github.com/user-attachments/assets/a57e29c2-3bd4-4607-af54-0590732a4f53" />
+<img width="1659" height="831" alt="image" src="https://github.com/user-attachments/assets/89bb265d-1098-4dfb-a978-bbd2b5491409" />
+<img width="1605" height="798" alt="image" src="https://github.com/user-attachments/assets/2a300bf2-24dd-470e-a379-92874fa3b5ef" />
+
+
+
